@@ -1,4 +1,4 @@
-package com.fujihire.backend;
+package com.fujihire;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
