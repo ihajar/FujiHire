@@ -1,19 +1,21 @@
 package com.fujihire.features.authentication.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity(name = "users")
 public class AuthUser {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String email;
     private String password;
 
-    public AuthUser(String email, Long id, String password) {
+    public AuthUser( String email, String password) {
         this.email = email;
-        this.id = id;
         this.password = password;
     }
 
