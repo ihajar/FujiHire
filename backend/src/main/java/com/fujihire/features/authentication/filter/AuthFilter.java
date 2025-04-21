@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class AuthFilter extends HttpFilter {
     private final List<String> unsecuredEndpoints = Arrays.asList(
-        "/api/v1/auth/login",
+    "/api/v1/auth/login",
         "/api/v1/auth/register",
         "/api/v1/auth/send-password-reset-token",
         "/api/v1/auth/reset-password"
@@ -60,6 +60,9 @@ public class AuthFilter extends HttpFilter {
             String token = authorization.substring(7);
             
             String email = jsonWebTokenService.getEmailFromToken(token);
+            if (jsonWebTokenService.isTokenExpired(token)) {
+                throw new ServletException("Invalid token");
+            }
             AuthUser user = authService.getUser(email);
             request.setAttribute("authenticatedUser", user);
             chain.doFilter(request, response);
