@@ -8,4 +8,5 @@ import com.fujihire.features.authentication.model.AuthUser;
 
 public interface AuthUserRepository extends JpaRepository<AuthUser, Long> {
     Optional<AuthUser> findByEmail(String email);
+    boolean existsByEmail(String email);
 }
