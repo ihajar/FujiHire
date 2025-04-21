@@ -2,6 +2,7 @@ package com.fujihire.features.authentication.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,8 +23,8 @@ public class AuthenController {
     }
     
     @GetMapping("/user")
-    public AuthUser getUser() {
-        return authService.getUser("hadjer@email.com");
+    public AuthUser getUser(@RequestAttribute("authenticatedUser") AuthUser authenticatedUser ) {
+        return authService.getUser(authenticatedUser.getEmail());
     }
 
     @PostMapping("/login")

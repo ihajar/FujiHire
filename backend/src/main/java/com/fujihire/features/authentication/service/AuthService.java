@@ -39,7 +39,8 @@ public class AuthService {
     public AuthResponseBody register(AuthRequestBody registeRequestBody) {
         AuthUser user = authUserRepository.save(new AuthUser(registeRequestBody.getEmail(), encoder.encode(registeRequestBody.getPassword())));
         authUserRepository.save(user);
-        return new AuthResponseBody("token", "User registred successfully.");
+        String token = jsonWebToken.generateToken(registeRequestBody.getEmail());
+        return new AuthResponseBody(token, "User registred successfully.");
     }
 
 }
