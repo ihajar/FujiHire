@@ -26,6 +26,11 @@ public class AuthenController {
         return authService.getUser("hadjer@email.com");
     }
 
+    @PostMapping("/login")
+    public AuthResponseBody loginUSer(@Valid @RequestBody AuthRequestBody loginRequestBody) {
+        return authService.login(loginRequestBody);
+    }
+
     @PostMapping("/register")
     public AuthResponseBody registerUser(@Valid @RequestBody AuthRequestBody registerRequestBody) {
         return authService.register(registerRequestBody);
