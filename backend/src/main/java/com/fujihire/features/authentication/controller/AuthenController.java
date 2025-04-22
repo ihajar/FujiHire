@@ -1,6 +1,5 @@
 package com.fujihire.features.authentication.controller;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fujihire.dto.PasswordResetRequest;
 import com.fujihire.dto.Response;
 import com.fujihire.features.authentication.dto.AuthRequestBody;
 import com.fujihire.features.authentication.dto.AuthResponseBody;
@@ -61,13 +61,13 @@ public class AuthenController {
     }
 
     @PutMapping("/send-password-reset-token")
-    public Response sendPasswordResetToken(@RequestParam String email) {
+    public Response sendPasswordResetToken(@RequestParam("email") String email) {
         authService.sendPasswordResetToken(email);
-        return new Response("Password reset successfully.");
+        return new Response("Password reset token sent successfully.");
     }
 
     @PutMapping("/reset-password")
-    public Response resetPassword(@RequestParam String newPassword, @RequestParam String token, @RequestParam String email) {
+    public Response resetPassword(@RequestParam("newPassword") String newPassword, @RequestParam("token") String token, @RequestParam("email") String email) {
         authService.resetPassword(email, newPassword, token);
         return new Response("Password reset successfully");
     }
