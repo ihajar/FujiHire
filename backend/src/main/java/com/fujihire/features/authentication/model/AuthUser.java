@@ -2,6 +2,8 @@ package com.fujihire.features.authentication.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -14,6 +16,7 @@ import jakarta.validation.constraints.NotNull;
 
 
 @Entity(name = "users")
+@Indexed(index = "users")
 public class AuthUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,7 +59,9 @@ public class AuthUser {
     public void setEmail(String email) { this.email = email; }
     public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
     public void setEmailVerificationToken(String emailVerificationToken) { this.emailVerificationToken = emailVerificationToken; }
-    public void setEmailVerificationTokenExpiryDate(LocalDateTime emailverificationExpiryDate) { this.emailVerificationTokenExpiryDate = emailVerificationTokenExpiryDate; }
+    public void setEmailVerificationTokenExpiryDate(LocalDateTime emailverificationExpiryDate) {
+        this.emailVerificationTokenExpiryDate = emailverificationExpiryDate;
+    }
     public void setPassword(String password) { this.password = password; }
     public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
     public void setPasswordResetTokenExpiryDate(LocalDateTime passwordResetTokenExpiryDate) { this.passwordResetTokenExpiryDate = passwordResetTokenExpiryDate; }

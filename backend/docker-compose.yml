@@ -8,6 +8,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - '3306:3306'
+    volumes:
+      - /Volumes/MiZou/mysql_data:/var/lib/mysql
   mailhog:
     image: mailhog/mailhog:v1.0.1
     ports:

@@ -60,6 +60,7 @@ public class AuthFilter extends HttpFilter {
             String token = authorization.substring(7);
             
             String email = jsonWebTokenService.getEmailFromToken(token);
+            System.out.println("Extracted email from token: "+ email);
             if (jsonWebTokenService.isTokenExpired(token)) {
                 throw new ServletException("Invalid token");
             }

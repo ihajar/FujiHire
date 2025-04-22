@@ -4,9 +4,13 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import javax.management.RuntimeErrorException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fujihire.features.authentication.dto.AuthRequestBody;
 import com.fujihire.features.authentication.dto.AuthResponseBody;
@@ -15,6 +19,9 @@ import com.fujihire.features.authentication.repository.AuthUserRepository;
 import com.fujihire.features.authentication.utils.EmailService;
 import com.fujihire.features.authentication.utils.Encoder;
 import com.fujihire.features.authentication.utils.JsonWebToken;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 
 @Service
@@ -27,6 +34,9 @@ public class AuthService {
     private final AuthUserRepository authUserRepository;
     private final int durationInMinutes = 1;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public AuthService(Encoder encoder, JsonWebToken jWebToken, EmailService emailService, AuthUserRepository authUserRepository) {
         this.encoder = encoder;
         this.jsonWebToken = jWebToken;
@@ -35,7 +45,17 @@ public class AuthService {
     }
 
     public AuthUser getUser(String email) {
-        return authUserRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found!"));
+        System.out.println("Querying user with email: " + email);
+        Optional<AuthUser> userOptional = authUserRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            System.out.println("User found: " + userOptional.get());
+            return userOptional.get();
+        } else {
+            System.out.println("User not found for email: " +email);
+            throw new IllegalArgumentException("User not found.");
+        }
+        // logger.info("Trying to load user by email: {}", email);
+        // return authUserRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found!"));
     }
 
     public static String generateEmailVerificationToken() {
@@ -72,23 +92,27 @@ public class AuthService {
 
     public void validateEmaileVerificationToken(String token, String email) {
         Optional<AuthUser> user = authUserRepository.findByEmail(email);
-        if (user.isPresent() && encoder.matches(token, user.get().getEmailVerificationToken())
-            && !user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        if (user.isPresent() && 
+            encoder.matches(token, user.get().getEmailVerificationToken()) && 
+            !user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
             user.get().setEmailVerified(true);
             user.get().setEmailVerificationToken(null);
             user.get().setEmailVerificationTokenExpiryDate(null);
             authUserRepository.save(user.get());
-        } else if (user.isPresent() && encoder.matches(token, user.get().getEmailVerificationToken())
-                && user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        } else if (user.isPresent() && 
+                    encoder.matches(token, user.get().getEmailVerificationToken()) && 
+                    user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Email verification token expired.");
         } else {
             throw new IllegalArgumentException("Email verification token failed.");
         }
+
     }
 
     public AuthResponseBody login(AuthRequestBody loginRequestBody) {
         AuthUser user = authUserRepository.findByEmail(loginRequestBody.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("User not found!"));
+        logger.info("Trying to login user by email: {}", loginRequestBody.getEmail());
         if (!encoder.matches(loginRequestBody.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Password is incorrect!");
         }
@@ -121,4 +145,46 @@ public class AuthService {
         return new AuthResponseBody(authToken, "User registered successfully.");
     }
 
+    public void sendPasswordResetToken(String email) {
+        Optional<AuthUser> user = authUserRepository.findByEmail(email);
+        if (user.isPresent()) {
+            String passwordResetToken = generateEmailVerificationToken();
+            String hashedToken = encoder.encode(passwordResetToken);
+            user.get().setPasswordResetToken(hashedToken);
+            user.get().setEmailVerificationTokenExpiryDate(LocalDateTime.now().plusMinutes(durationInMinutes));
+            authUserRepository.save(user.get());
+            String subject = "Password Reset";
+            String body = String.format("""
+                    You request a password reset.
+                    Enter this code to reset your password: %s. The code will expire in %s minutes""",
+                    passwordResetToken, durationInMinutes);
+            try {
+                emailService.sendEmail(email, subject, body);
+            } catch (Exception e) {
+                logger.info("Error while sending email: {}", e.getMessage());
+            }
+        } else {
+            throw new IllegalArgumentException("User not found!");
+        }
+    }
+
+    public void resetPassword(String email, String newPassword, String token) {
+        Optional<AuthUser> user = authUserRepository.findByEmail(email);
+        if (user.isPresent() && encoder.matches(token, user.get().getPasswordResetToken())
+            && !user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
+            user.get().setPasswordResetToken(null);
+            user.get().setEmailVerificationTokenExpiryDate(null);
+            user.get().setPassword(encoder.encode(newPassword));
+            authUserRepository.save(user.get());
+        } else if (user.isPresent() && encoder.matches(token, user.get().getPasswordResetToken())
+                    && user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Password reset token expired.");
+        } else {
+            throw new IllegalArgumentException("Password reset token failed.");
+        }
+    }
+
+    public AuthUser getUserById(Long receivedId) {
+        return authUserRepository.findById(receivedId).orElseThrow(() -> new IllegalArgumentException("User not found!"));
+    }
 }
