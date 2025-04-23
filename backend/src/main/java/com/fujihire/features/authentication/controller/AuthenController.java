@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fujihire.dto.PasswordResetRequest;
 import com.fujihire.dto.Response;
 import com.fujihire.features.authentication.dto.AuthRequestBody;
 import com.fujihire.features.authentication.dto.AuthResponseBody;
@@ -71,5 +70,6 @@ public class AuthenController {
         authService.resetPassword(email, newPassword, token);
         return new Response("Password reset successfully");
     }
+
     
 }
