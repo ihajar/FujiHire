@@ -1,10 +1,21 @@
-import React from 'react'
+import { cn } from "@/lib/utils";
 
-export const Logo = () => {
+interface LogoProps {
+  className?: string;
+  imgSize?: number;
+  textSize?: string;
+}
+
+export const Logo = ({ className, imgSize= 50, textSize= "text-lg" }: LogoProps) => {
   return (
-    <div className='flex flex-row items-center justify-evenly'>
-        <img src="/logo-light.svg" alt="FujiHire-logo" width={50} height={40} />
-        <span className='text-lg'>FujiHire</span>
+    <div className={cn('flex flex-row items-center justify-evenly text-center', className)}>
+        <img 
+          src="/logo-light.svg" 
+          alt="FujiHire-logo" 
+          width={imgSize} 
+          height={imgSize} 
+        />
+        <span className={textSize}>FujiHire</span>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form"
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schemas/formSchema";
@@ -12,13 +12,21 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
+import { useAuth } from "../contexts/AuthContextProvider";
 
 
 export default function Login() {
+  const {login} = useAuth();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -29,13 +37,31 @@ export default function Login() {
   });
 
   const doLogin = (values: z.infer<typeof LoginSchema>) => {
-    setError("");
-    setSuccess("");
+    startTransition(async() => {
+      setError("");
+      setSuccess("");
+      setIsLoading(true);
+      const email = values.email;
+      const password = values.password;
 
-    startTransition(() => {
-      console.log(values);
-    })
-  }
+      try {
+        await login(email, password);
+        const destination = location.state?.from || "/";
+        navigate(destination);
+        setSuccess("User Authenticated successfully." );
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+          setError(error.message);
+        } else {
+          setError("An unknown error occured.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  };
+
   return (
    <div className="flex w-full min-h-screen items-center justify-center">
     <CardWrapper
@@ -56,7 +82,7 @@ export default function Login() {
                 <FormControl>
                   <Input
                     {...field}
-                    disabled={isPending}
+                    disabled={isLoading}
                     placeholder="john.doe@example.com"
                     type="email"
                   />
@@ -74,7 +100,7 @@ export default function Login() {
                 <FormControl>
                   <Input
                     {...field}
-                    disabled={isPending}
+                    disabled={isLoading}
                     placeholder="*******"
                     type="password"
                   />
@@ -96,10 +122,10 @@ export default function Login() {
           <FormSuccess message={success} />
           <Button
             type="submit"
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full"
           >
-            {isPending ? "Submitting..." : "Log in"}
+            {isLoading ? "Submitting..." : "Log in"}
           </Button>
         </form>
       </Form>

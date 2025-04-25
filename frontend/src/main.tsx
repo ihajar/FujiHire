@@ -7,30 +7,36 @@ import Login from './features/authentication/pages/Login';
 import Signup from './features/authentication/pages/Signup';
 import ResetPassword from './features/authentication/pages/ResetPassword';
 import VerifyEmail from './features/authentication/pages/VerifyEmail';
+import { AuthContextProvider } from './features/authentication/contexts/AuthContextProvider';
 
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Feed/>,
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/signup",
-    element: <Signup />,
-  },
-  {
-    path: "/request-password-reset",
-    element: <ResetPassword />,
-  },
-  {
-    path: "/verify-email",
-    element: <VerifyEmail />,
+    element: <AuthContextProvider/>,
+    children: [
+      {
+        path: "/",
+        element: <Feed/>,
+      },
+      {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/signup",
+        element: <Signup />,
+      },
+      {
+        path: "/request-password-reset",
+        element: <ResetPassword />,
+      },
+      {
+        path: "/verify-email",
+        element: <VerifyEmail />,
+      }
+    ]
   }
-])
+]);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
