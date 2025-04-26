@@ -22,9 +22,16 @@ export const request = async<T> ({
     onSuccess,
     onFailure,
 }: IRequestParams<T>): Promise<void> => {
-    const headers: IHeaders = {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-    };
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    // const headers: IHeaders = {
+    //     Authorization: `Bearer ${localStorage.getItem("token")}`,
+    // };
     if (contentType === "application/json") {
         headers["Content-Type"] = "application/json";
     }
@@ -37,15 +44,17 @@ export const request = async<T> ({
         });
 
         if (!response.ok) {
-            if (response.status === 401 && !window.location.pathname.includes("authorization")) {
-                window.location.href = "/auth/login";
-                return;
-            }
+            const errorData = await response.json();
+            const errorMessage = errorData?.message || "An error occured.";
+            throw new Error(errorMessage);
+            // if (response.status === 401 && !window.location.pathname.includes("authorization")) {
+            //     window.location.href = "/login";
+            //     return;
+            // }
 
-            const { message } = await response.json();
-            throw new Error(message);
+            // const { message } = await response.json();
+            // throw new Error(message);
         }
-
         const data: T = await response.json();
         onSuccess(data);
     } catch (error) {

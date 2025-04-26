@@ -1,15 +1,28 @@
-import { useState, useTransition } from "react";
+import { z } from "zod";
+import { useRef, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWrapper } from "../components/card-wrapper";
-import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
-
-
+import { NewPasswordSchema, ResetPasswordSchema } from "@/schemas/formSchema";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { request } from "@/utils/api";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  usePageTitle("Reset Password");
 
   const [emailSent, setEmailSent] = useState(false);
   const [email, setEmail] = useState("");
@@ -17,11 +30,49 @@ export default function ResetPassword() {
   const [success, setSucces] = useState<string | undefined>("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const sendPasswordResetToken = async(email: string) => {
-    setIsLoading(false);
+  const sendPasswordResetToken = async (email: string) => {
+    setIsLoading(true);
     setError("");
     setSucces("");
-  }
+
+    await request<void>({
+      endpoint: `/api/v1/auth/send-password-reset-token?email=${email}`,
+      method: "PUT",
+      onSuccess: () => {
+        setSucces("Email sent successfully.");
+        setEmailSent(true);
+        setEmail(email);
+      },
+      onFailure: (error) => {
+        setError(error);
+      },
+    });
+    setIsLoading(false);
+  };
+
+  const resetPassword = async (
+    email: string,
+    code: string,
+    password: string
+  ) => {
+    setError("");
+    setSucces("");
+    setIsLoading(true);
+
+    await request<void>({
+      endpoint: `/api/v1/auth/reset-password?email=${email}&token=${code}&newPassword=${password}`,
+      method: "PUT",
+      onSuccess: () => {
+        setSucces("Password reset successfully.");
+        navigate("/login");
+      },
+      onFailure: (error) => {
+        setError(error);
+      },
+    });
+    setIsLoading(false);
+  };
+
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center">
       <CardWrapper
@@ -33,43 +84,55 @@ export default function ResetPassword() {
         {!emailSent ? (
           <form
             className="flex flex-col space-y-6"
-            onSubmit={async(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setIsLoading(true);
               const email = e.currentTarget.email.value;
               await sendPasswordResetToken(email);
               setEmail(email);
-              setIsLoading(false);
             }}
           >
             <Input
-              key="email"
               type="email"
-              placeholder="Email"
+              placeholder="Enter your email"
+              key="email"
               name="email"
+              disabled={isLoading || emailSent}
             />
-            <Button type="submit" disabled={isLoading} className="cursor-pointer">
-              Next
+            <FormError message={error} />
+            <FormSuccess message={success} />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="cursor-pointer"
+            >
+              {isLoading ? "Processing..." : "Next"}
             </Button>
           </form>
         ) : (
           <form
             className="flex flex-col space-y-6"
-            onSubmit={async(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setIsLoading(true);
               const code = e.currentTarget.code.value;
               const password = e.currentTarget.password.value;
-              await sendPasswordResetToken(email);
-              setIsLoading(false);
+              await resetPassword(email, code, password);
             }}
           >
-            <p>Enter the verification code we sent to your email and your new password.</p>
             <Input
-              type="password"
-              name="password"
-              placeholder="New Password"
+              type="text"
+              placeholder="Enter new code"
+              key="code"
+              name="code"
+              disabled={isLoading}
             />
+            <Input 
+              disabled={isLoading} 
+              placeholder="*******" 
+              type="password"
+              key="password"
+              name="password"
+            />
+
             <FormError message={error} />
             <FormSuccess message={success} />
             <Button type="submit" disabled={isLoading}>
@@ -79,5 +142,5 @@ export default function ResetPassword() {
         )}
       </CardWrapper>
     </div>
-  )
+  );
 }

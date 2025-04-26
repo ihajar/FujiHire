@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { startTransition, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { startTransition, useState, useTransition } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { CardWrapper } from "../components/card-wrapper";
 import { Input } from "@/components/ui/input";
 import { FormError } from "../components/form-error";
@@ -10,12 +10,18 @@ import { useForm } from "react-hook-form";
 import { EmailValidationSchema } from "@/schemas/formSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuth } from "../contexts/AuthContextProvider";
+import { request } from "@/utils/api";
 
 export default function VerifyEmail() {
+  const { user, setUser } = useAuth();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSucces] = useState<string | undefined>("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isPending, startTransition] = useTransition();
+  
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof EmailValidationSchema>>({
@@ -25,75 +31,78 @@ export default function VerifyEmail() {
     },
   });
 
-  const validateEmail = ({ code }: z.infer<typeof EmailValidationSchema>) => {
-    startTransition(async () => {
+  const validateEmail = async({ code }: z.infer<typeof EmailValidationSchema>) => {
       setError("");
       setSucces("");
       setMessage("");
       setIsLoading(true);
-      try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/api/v1/auth/validate-email-verification-token?token=${code}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (response.ok) {
-          setSucces("User validated email successfully.");
+      
+      await request<void>({
+        endpoint: `/api/v1/auth/validate-email-verification-token?token=${code}`,
+        method: "PUT",
+        onSuccess: () => {
+          setUser({ ...user!, emailVerified: true });
+          setSucces("User's email verified successfully.");
           navigate("/");
-          return;
-        }
-        const { message } = await response.json();
-        setMessage(message);
-      } catch (error) {
-        console.log(error);
-        setError("Somethign went wrong. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    });
+        },
+        onFailure: (error) => {
+          setError(error);
+        },
+      });
+      setIsLoading(false);
   };
 
-  const resendEMailverificationToken = ({
-    code,
-  }: z.infer<typeof EmailValidationSchema>) => {
-    startTransition(async () => {
-      setError("");
-      setSucces("");
-      setMessage("");
-      setIsLoading(true);
+  const resendEMailverificationToken = async() => {
+    setError("");
+    setSucces("");
+    setIsLoading(true);
 
-      try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/api/v1/auth/send-email-verification-token`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (response.ok) {
-          setError("");
-          setSucces("Code sent successfully. Please check your email");
-          return;
-        }
-        const { message } = await response.json();
-        setMessage(message);
-      } catch (error) {
-        console.log(error);
-        setError("Somethign went wrong. Please try again!.");
-      } finally {
-        setIsLoading(false);
-      }
+    await request<void>({
+      endpoint: `/api/v1/auth/send-email-verification-token`,
+      onSuccess: () => {
+        setSucces("Code sent successfully. Please check your email.");
+      },
+      onFailure: (error) => {
+        setError(error);
+      },
     });
-  };
+    setIsLoading(false);
+  }
+  // const resendEMailverificationToken = ({
+  //   code,
+  // }: z.infer<typeof EmailValidationSchema>) => {
+  //   startTransition(async () => {
+  //     setError("");
+  //     setSucces("");
+  //     setMessage("");
+  //     setIsLoading(true);
+
+  //     try {
+  //       const response = await fetch(
+  //         `${
+  //           import.meta.env.VITE_API_URL
+  //         }/api/v1/auth/send-email-verification-token`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //           },
+  //         }
+  //       );
+  //       if (response.ok) {
+  //         setError("");
+  //         setSucces("Code sent successfully. Please check your email");
+  //         return;
+  //       }
+  //       const { message } = await response.json();
+  //       setMessage(message);
+  //     } catch (error) {
+  //       console.log(error);
+  //       setError("Somethign went wrong. Please try again!.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   });
+  // };
 
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center">
@@ -121,6 +130,7 @@ export default function VerifyEmail() {
                       placeholder="Verification code"
                       key="code"
                       name="code"
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -129,16 +139,16 @@ export default function VerifyEmail() {
             />
             <FormError message={error} />
             <FormSuccess message={success} />
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Validating..." : "Validate email"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Validating..." : "Validate email"}
             </Button>
             <Button
               variant="outline"
               type="button"
-              onClick={() => resendEMailverificationToken({ code: form.getValues("code") })}
-              disabled={isLoading}
+              onClick={() => resendEMailverificationToken()}
+              disabled={isPending}
             >
-              {isLoading ? "Sending..." : "Send again"}
+              {isPending ? "Sending..." : "Send again"}
             </Button>
           </form>
         </Form>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { useState, useTransition } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,11 +21,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
+import { useAuth } from "../contexts/AuthContextProvider";
+import { Loader } from "@/components/loader";
 
 export default function Signup() {
+  const navigate = useNavigate();
+  const { signup } = useAuth();
+
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [isPending] = useTransition();
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
@@ -35,14 +42,31 @@ export default function Signup() {
     },
   });
 
-  const doSignup = (values: z.infer<typeof RegisterSchema>) => {
+  const doSignup = async (values: z.infer<typeof RegisterSchema>) => {
     setError("");
     setSuccess("");
-    startTransition(() => {
-      console.log(values);
-    });
+    setIsLoading(true);
+    const email = values.email;
+    const password = values.password;
+
+    try {
+      await signup(email, password);
+      setSuccess("User registered successfully. Please verify your email.");
+      navigate("/");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occured");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  if (isLoading) {
+    return <Loader />
+  }
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center">
       <CardWrapper
@@ -94,18 +118,12 @@ export default function Signup() {
             </div>
             <FormError message={error} />
             <FormSuccess message={success} />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-            >
-              Sign up
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Registering ..." : "Sign up"}
             </Button>
           </form>
         </Form>
-       
       </CardWrapper>
-      
     </div>
   );
 }
