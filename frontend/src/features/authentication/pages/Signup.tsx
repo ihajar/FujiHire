@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { useState, useTransition } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { RegisterSchema } from "@/schemas/formSchema";
+import { useAuth } from "../contexts/AuthContextProvider";
 
 import { CardWrapper } from "../components/card-wrapper";
-
+import { Loader } from "@/components/loader";
 import {
   Form,
   FormControl,
@@ -21,8 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
-import { useAuth } from "../contexts/AuthContextProvider";
-import { Loader } from "@/components/loader";
+
+
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -64,11 +64,9 @@ export default function Signup() {
     }
   };
 
-  if (isLoading) {
-    return <Loader />
-  }
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center">
+      {isLoading && (<Loader/>)}
       <CardWrapper
         headerLabel="Sign up to FujiHire"
         description="Join over 50,000 satisfied job seekers and companies who are already on FujiHire"

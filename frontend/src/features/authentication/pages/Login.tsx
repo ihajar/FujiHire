@@ -5,8 +5,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schemas/formSchema";
+import { useAuth } from "../contexts/AuthContextProvider";
 
 import { CardWrapper } from "../components/card-wrapper";
+import { Loader } from "@/components/loader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,17 +21,16 @@ import {
 } from "@/components/ui/form";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
-import { useAuth } from "../contexts/AuthContextProvider";
+
 
 export default function Login() {
   const { login } = useAuth();
-
   const location = useLocation();
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -65,6 +66,7 @@ export default function Login() {
 
   return (
     <div className="flex w-full min-h-screen items-center justify-center">
+      {isLoading && (<Loader/>)}
       <CardWrapper
         headerLabel="Log in to FujiHire"
         description="Welcome back. Please enter your details."

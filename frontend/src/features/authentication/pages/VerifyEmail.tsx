@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { startTransition, useState, useTransition } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useState, useTransition } from "react";
+import { useNavigate } from "react-router-dom";
 import { CardWrapper } from "../components/card-wrapper";
 import { Input } from "@/components/ui/input";
 import { FormError } from "../components/form-error";
@@ -12,15 +12,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "../contexts/AuthContextProvider";
 import { request } from "@/utils/api";
+import { Loader } from "@/components/loader";
 
 export default function VerifyEmail() {
   const { user, setUser } = useAuth();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSucces] = useState<string | undefined>("");
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   
   const navigate = useNavigate();
 
@@ -34,7 +34,6 @@ export default function VerifyEmail() {
   const validateEmail = async({ code }: z.infer<typeof EmailValidationSchema>) => {
       setError("");
       setSucces("");
-      setMessage("");
       setIsLoading(true);
       
       await request<void>({
@@ -68,44 +67,10 @@ export default function VerifyEmail() {
     });
     setIsLoading(false);
   }
-  // const resendEMailverificationToken = ({
-  //   code,
-  // }: z.infer<typeof EmailValidationSchema>) => {
-  //   startTransition(async () => {
-  //     setError("");
-  //     setSucces("");
-  //     setMessage("");
-  //     setIsLoading(true);
-
-  //     try {
-  //       const response = await fetch(
-  //         `${
-  //           import.meta.env.VITE_API_URL
-  //         }/api/v1/auth/send-email-verification-token`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //           },
-  //         }
-  //       );
-  //       if (response.ok) {
-  //         setError("");
-  //         setSucces("Code sent successfully. Please check your email");
-  //         return;
-  //       }
-  //       const { message } = await response.json();
-  //       setMessage(message);
-  //     } catch (error) {
-  //       console.log(error);
-  //       setError("Somethign went wrong. Please try again!.");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   });
-  // };
 
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center">
+      {isLoading && (<Loader/>)}
       <CardWrapper
         headerLabel="Verify your email"
         description="Only one step left to complete your registration."

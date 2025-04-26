@@ -1,22 +1,10 @@
-import { z } from "zod";
-import { useRef, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {  useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CardWrapper } from "../components/card-wrapper";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormError } from "../components/form-error";
 import { FormSuccess } from "../components/form-success";
-import { NewPasswordSchema, ResetPasswordSchema } from "@/schemas/formSchema";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { request } from "@/utils/api";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
