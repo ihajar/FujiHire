@@ -1,5 +1,6 @@
 package com.fujihire.features.authentication.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fujihire.dto.Response;
 import com.fujihire.features.authentication.dto.AuthRequestBody;
@@ -71,5 +73,21 @@ public class AuthenController {
         return new Response("Password reset successfully");
     }
 
+    @PutMapping("/profile/{id}/info")
+    public AuthUser updateUserProfile(
+        @RequestAttribute("authenticated") AuthUser authUser, 
+        @PathVariable Long id,
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String company,
+        @RequestParam(required = false) String position,
+        @RequestParam(required = false) String location,
+        @RequestParam(required = false) String about) {
+            if (!authUser.getId().equals(id)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "User does not have permission ot update this profile");
+            }
+            return authService.updateUserProfile(authUser, firstName, lastName, company, position, location, about);
+    }
     
 }

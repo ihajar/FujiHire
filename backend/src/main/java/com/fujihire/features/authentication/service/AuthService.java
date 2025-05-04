@@ -113,11 +113,15 @@ public class AuthService {
             throw new IllegalArgumentException("Password is incorrect!");
         }
         String token = jsonWebToken.generateToken(loginRequestBody.getEmail());
-        return new AuthResponseBody(token, "Authentication succeeded.");
+        return new AuthResponseBody(token, "Authentication succeeded.", user.getRole());
     }
 
     public AuthResponseBody register(AuthRequestBody registeRequestBody) {
-        AuthUser user = authUserRepository.save(new AuthUser(registeRequestBody.getEmail(), encoder.encode(registeRequestBody.getPassword())));
+        AuthUser user = authUserRepository.save(new AuthUser(
+            registeRequestBody.getEmail(), 
+            encoder.encode(registeRequestBody.getPassword()),
+            registeRequestBody.getRole()
+        ));
         String emailVerificationToken = generateEmailVerificationToken();
         String hashedToken = encoder.encode(emailVerificationToken);
         user.setEmailVerificationToken(hashedToken);
@@ -138,7 +142,7 @@ public class AuthService {
         }
 
         String authToken = jsonWebToken.generateToken(registeRequestBody.getEmail());
-        return new AuthResponseBody(authToken, "User registered successfully.");
+        return new AuthResponseBody(authToken, "User registered successfully.", user.getRole());
     }
 
     public void sendPasswordResetToken(String email) {
@@ -182,5 +186,27 @@ public class AuthService {
 
     public AuthUser getUserById(Long receivedId) {
         return authUserRepository.findById(receivedId).orElseThrow(() -> new IllegalArgumentException("User not found!"));
+    }
+
+    public AuthUser updateUserProfile(AuthUser user, String firstName, String lastName, String company, String position, String location, String about) {
+        if (firstName != null) {
+            user.setFirstName(firstName);
+        }
+        if (lastName != null) {
+            user.setLastName(lastName);
+        }
+        if (company != null) {
+            user.setCompany(company);
+        }
+        if (position != null) {
+            user.setPosition(position);
+        }
+        if (location != null) {
+            user.setLocation(location);
+        }
+        if (about != null) {
+            user.setAbout(about);
+        }
+        return authUserRepository.save(user);
     }
 }

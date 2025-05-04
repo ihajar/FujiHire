@@ -1,15 +1,17 @@
 import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { request } from "@/utils/api";
+import { UserRole } from "@/types/user";
 
 interface IAuthResponse {
     token: string;
-    message: string;
+    user: IUser;
 }
 
 export interface IUser {
     id: string;
     email: string;
+    role: UserRole;
     emailVerified: boolean;
 }
 
@@ -17,7 +19,7 @@ interface IAuthContextType {
     user: IUser | null;
     setUser: Dispatch<SetStateAction<IUser | null>>;
     login: (email: string, password: string) => Promise<void>;
-    signup: (email: string, password: string) => Promise<void>;
+    signup: (email: string, password: string, role: UserRole) => Promise<void>;
     logout: () => void;
 }
 const AuthContext = createContext<IAuthContextType | null>(null);
@@ -36,27 +38,33 @@ export function AuthContextProvider() {
         location.pathname === "/signup" ||
         location.pathname === "/request-password-reset";
     
-    const login = async(email: string, password: string) =>{
-    await request<IAuthResponse>({
-        endpoint: "/api/v1/auth/login",
-        method: "POST",
-        body: JSON.stringify({email, password}),
-        onSuccess:({ token }) => {
-            localStorage.setItem("token", token);
-        },
-        onFailure: (error) => {
-            throw new Error(error);
-        }
-    })
-}
+    const login = async(email: string, password: string) => {
+        await request<IAuthResponse>({
+            endpoint: "/api/v1/auth/login",
+            method: "POST",
+            body: JSON.stringify({
+                email,
+                password,
+                role: user?.role || UserRole.JOB_SEEKER
+            }),
+            onSuccess:({ token, user }) => {
+                localStorage.setItem("token", token);
+                setUser(user);
+            },
+            onFailure: (error) => {
+                throw new Error(error);
+            }
+        });
+    }
 
-    const signup = async(email: string, password: string) => {
+    const signup = async(email: string, password: string, role: UserRole) => {
         await request<IAuthResponse>({
             endpoint: "/api/v1/auth/register",
             method: "POST",
-            body: JSON.stringify({ email, password }),
-            onSuccess: ({ token }) => {
+            body: JSON.stringify({ email, password, role }),
+            onSuccess: ({ token, user }) => {
                 localStorage.setItem("token", token);
+                setUser(user);
             },
             onFailure: (error) => {
                 throw new Error(error);
@@ -70,7 +78,7 @@ export function AuthContextProvider() {
     }
 
     useEffect(() => {
-        if (user) { return; }
+        if (user) return;
         setIsLoading(true);
         const fetchUser = async() => {
             await request<IUser>({

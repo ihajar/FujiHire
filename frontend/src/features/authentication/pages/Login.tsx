@@ -24,13 +24,13 @@ import { FormSuccess } from "../components/form-success";
 
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -45,11 +45,29 @@ export default function Login() {
     setError("");
     setSuccess("");
     setIsLoading(true);
-    const email = values.email;
-    const password = values.password;
 
+    // try {
+    //   startTransition(async() => {
+    //     await login(values.email, values.password);
+    //     setSuccess("Login successful!");
+
+    //     setTimeout(() => {
+    //       navigate(location.state?.from || "/", {
+    //         replace: true,
+    //         state: { from: location.pathname }
+    //       });
+    //     }, 1000);
+    //   });
+    // } catch (error) {
+    //   setIsLoading(false);
+    //   if (error instanceof Error) {
+    //     setError(error.message || "Invalid email or password");
+    //   } else {
+    //     setError("An unknown error occured.");
+    //   }
+    // }
     try {
-      await login(email, password);
+      await login(values.email, values.password);
       const destination = location.state?.from || "/";
       setSuccess("user logged in successfully.");
       navigate(destination);
@@ -66,8 +84,10 @@ export default function Login() {
 
   return (
     <div className="flex w-full min-h-screen items-center justify-center">
-      {isLoading && (<Loader/>)}
-      <CardWrapper
+      {isLoading ? (
+        <Loader/>
+      ): (
+        <CardWrapper
         headerLabel="Log in to FujiHire"
         description="Welcome back. Please enter your details."
         backButtonHref="/signup"
@@ -119,6 +139,7 @@ export default function Login() {
                       </Link>
                     </Button>
                     <FormMessage />
+                    
                   </FormItem>
                 )}
               />
@@ -131,6 +152,7 @@ export default function Login() {
           </form>
         </Form>
       </CardWrapper>
+      )} 
     </div>
   );
 }

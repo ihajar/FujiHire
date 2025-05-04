@@ -24,7 +24,8 @@ export const request = async<T> ({
 }: IRequestParams<T>): Promise<void> => {
     const token = localStorage.getItem("token");
     const headers: Record<string, string> = {};
-
+    console.log("API reponse", token);
+    
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }

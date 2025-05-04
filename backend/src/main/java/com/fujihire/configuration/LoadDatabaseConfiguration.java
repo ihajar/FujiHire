@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fujihire.features.authentication.model.AuthUser;
+import com.fujihire.features.authentication.model.UserRole;
 import com.fujihire.features.authentication.repository.AuthUserRepository;
 import com.fujihire.features.authentication.utils.Encoder;
 
@@ -20,7 +21,7 @@ public class LoadDatabaseConfiguration {
     @Bean
     public CommandLineRunner initDatabse(AuthUserRepository authUserRepository) {
         return args -> {
-            AuthUser authUser = new AuthUser("hadjer@email.com", encoder.encode("hadjer"));
+            AuthUser authUser = new AuthUser("hadjer@email.com", encoder.encode("hadjer"), UserRole.EMPLOYER);
             authUserRepository.save(authUser);
         };
     }
