@@ -1,12 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import React from 'react'
 
 export default function Home() {
   return (
-    <View className="flex items-start">
-      <Text className='text-emerald-400'>Home</Text>
+    <View className="flex items-center justify-center">
+      <Text className='font-bold'>Home</Text>
     </View>
   )
-}
-
-const styles = StyleSheet.create({})
+};
