@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as StoreReview from "expo-store-review";
 import Animated, { FadeIn, FadeInDown, interpolateColor, useAnimatedStyle, useSharedValue, withSequence, withSpring } from "react-native-reanimated";
-import { View } from "react-native-reanimated/lib/typescript/Animated";
+
 
 export function RatingScreen() {
     const [rating, setRating] = useState(0);
@@ -34,11 +35,11 @@ export function RatingScreen() {
     }, []);
 
     return (
-        <View className="flex-1 justify-center items-center p-7">
-            <Animated.Text entering={FadeIn.duration(600)} className="text-xl font-bold text-center mb-10">
+        <View className="flex-1 justify-center items-center p-8">
+            <Animated.Text entering={FadeIn.duration(600)} className="text-3xl font-bold text-center mb-10">
                 Give us a rating
             </Animated.Text>
-            <Animated.View entering={FadeInDown.duration(600).delay(300)} className="flex-row justify-center items-center gap-8 mb-20">
+            <Animated.View entering={FadeInDown.duration(600).delay(300)} className="flex-row justify-center items-center gap-2 mb-10">
                 {[1, 2, 3, 4, 5].map((star, index) => {
                     const animatedStyle = useAnimatedStyle(() => {
                         return {
@@ -55,7 +56,7 @@ export function RatingScreen() {
                     }));
                     return (
                         <Animated.View key={star} entering={FadeInDown.duration(600).delay(300 + index * 100)}>
-                            <Animated.View className="p-4" style={[animatedStyle]}>
+                            <Animated.View className="p-2" style={[animatedStyle]}>
                                 <Animated.View style={animatedColor}>
                                     <Ionicons
                                         name={rating >= star ? 'star' : 'star-outline'}
@@ -68,11 +69,11 @@ export function RatingScreen() {
                     );
                 })}
             </Animated.View>
-            <Animated.Text entering={FadeInDown.duration(600).delay(600)} className="text-lg text-center text-slate-500 leading-8">
+            <Animated.Text entering={FadeInDown.duration(600).delay(600)} className="text-lg text-center text-slate-800">
                 Made for poeple like you
             </Animated.Text>
-            <Animated.View entering={FadeInDown.duration(600).delay(800)} className="flex-row justify-center items-center mt-10">
-                <View className="w-15 h-15 rounded-md overflow-hidden">
+            <Animated.View entering={FadeInDown.duration(600).delay(800)} className="flex-row justify-center items-center mt-5">
+                <View className="w-13 h-13 rounded-3xl overflow-hidden">
                     <Animated.Image
                         source={require('@/assets/images/avatars/1.png')}
                         className="w-full h-full"
