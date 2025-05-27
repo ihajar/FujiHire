@@ -14,15 +14,15 @@ export function OnboardingProgress({
 }: OnboardingProgressProps) {
   const progress = (currentStep / totalSteps) * 100;
   return (
-    <View className="flex-row items-center p-4 gap-4">
+    <View className="flex-row items-center pb-4 gap-4">
       <TouchableOpacity
         onPress={onBack}
-        className="p-2 roundeed-[120px] bg-[#f4f4f4]"
+        className="p-2 roundeed-[120px] bg-secondary/30"
       >
-        <Ionicons name="arrow-back" size={20} color={"#000000"} />
+        <Ionicons name="arrow-back" size={20} color={"#070707"} />
       </TouchableOpacity>
       <View className="flex-1 h-1 bg-[#E0E0E0] rounded-sm overflow-hidden">
-        <View className="h-full bg-primary" style={{ width: `${progress}%` }} />
+        <View className="h-full bg-secondary" style={{ width: `${progress}%` }} />
       </View>
     </View>
   );

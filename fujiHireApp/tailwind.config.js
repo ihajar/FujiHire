@@ -4,7 +4,18 @@ module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        rametto: ["RamettoOne"],
+      },
+      colors: {
+        primary: '#3b308e',
+        secondary: '#EC3E72',
+        accent: '#D4F6ED',
+        pink: '#FADBF1',
+        blackish: '#070707'
+      },
+    },
   },
   plugins: [],
 }

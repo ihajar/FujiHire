@@ -20,7 +20,7 @@ export const QUESTIONS = [
     ],
   },
   {
-    question: 'Where did you hear about FujiHire?',
+    question: 'Where did you hear about Career++?',
     options: [
       { id: 'linkedin', label: 'LinkedIn' },
       { id: 'twitter', label: 'Twitter/X' },

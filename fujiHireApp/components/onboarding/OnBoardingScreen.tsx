@@ -88,12 +88,12 @@ export function OnBoardingScreen() {
         >
           <Animated.Image
             entering={FadeIn.duration(600)}
-            source={require("@/assets/images/logo-dark.svg")}
+            source={require("@/assets/images/onBoarding-illus.png")}
             className="w-full h-[300px] mb-2"
             resizeMode="contain"
           />
-          <Text className="text-3xl font-bold text-center mb-3 text-black">
-            Welcome to Forsa
+          <Text className="text-3xl font-bold font-rametto text-center mb-3 text-black">
+            Welcome to <Text className="text-secondary">Career++</Text>
           </Text>
           <Text className="text-xl text-center mb-3">
             We are excited to have you on board! Let's get started with a few
@@ -156,15 +156,15 @@ export function OnBoardingScreen() {
           >
             <TouchableOpacity
               onPress={() => handleOptionSelect(option.id)}
-              className={`p-4 rounded-xl bg-slate-200 mb-3 border-2 border-transparent 
+              className={`p-4 rounded-xl mt-3 border-2 border-transparent
                                 ${answers[currentStep] === option.id} 
-                                bg-[#E3F2FD] border-[#1976D2]
+                                bg-primary/10 border-primary/5
                             `}
             >
               <Text
                 className={`text-base text-center font-medium 
                                     ${answers[currentStep] === option.id} 
-                                    text-[#1976D2] font-semibold
+                                    text-primary font-semibold
                                 `}
               >
                 {option.label}
@@ -180,7 +180,7 @@ export function OnBoardingScreen() {
   const isWelcomeScreen = currentStep === 0;
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white p-4">
       {shouldShowProgress && (
         <OnboardingProgress
           currentStep={currentStep}
@@ -192,7 +192,7 @@ export function OnBoardingScreen() {
       {currentStep <= QUESTIONS.length + 2 && (
         <Animated.View entering={FadeIn.duration(600)}>
           <TouchableOpacity
-            className={`bg-primary p-4 m-2.5 rounded-xl items-center justify-center 
+            className={`bg-primary p-4 mt-8 rounded-xl items-center justify-center 
                   ${currentStep > 0 && currentStep <= QUESTIONS.length && !answers[currentStep] ? 'opacity-0.5' : null }
               `}
             onPress={handleContinue}

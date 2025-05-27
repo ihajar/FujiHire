@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Forsa",
-    "slug": "Forsa",
+    "name": "Career+",
+    "slug": "Career+",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "Forsa",
+    "scheme": "Career+",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
