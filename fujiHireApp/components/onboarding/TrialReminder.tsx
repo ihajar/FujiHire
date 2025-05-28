@@ -97,10 +97,10 @@ export function TrialReminder({
             </Text>
         </View>
         <TouchableOpacity
-            className="bg-inherit p-8 m-5 rounded-md items-center"
+            className="p-3 m-5 rounded-xl items-center bg-primary border-2 border-primary/30"
             onPress={onStartFreeTrial}
         >
-            <Text className="text-lg font-bold">Continue for FREE</Text>
+            <Text className="text-lg font-bold text-white">Continue for FREE</Text>
         </TouchableOpacity>
       </View>
     </View>

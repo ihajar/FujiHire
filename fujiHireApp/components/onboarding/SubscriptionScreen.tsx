@@ -12,6 +12,7 @@ interface SubscriptionScreenProps {
   onSubscriptionSelect: (type: "yearly" | "monthly") => void;
   onPurchasePackage: () => void;
   onRestorePurchases: () => void;
+  onGoToAuth: () => void; // Add this prop
 }
 
 export function SubscriptionScreen({
@@ -22,6 +23,7 @@ export function SubscriptionScreen({
   onSubscriptionSelect,
   onPurchasePackage,
   onRestorePurchases,
+  onGoToAuth, // Add this prop
 }: SubscriptionScreenProps) {
   const handleTerms = () => {
     Linking.openURL("https://healthy-swap.netlify.app/terms");
@@ -49,7 +51,7 @@ export function SubscriptionScreen({
             <>
               <View className="flex-row items-start mb-2.5">
                 <View className="w-10 h-10 rounded-[20px] justify-center items-center mr-4">
-                  <Ionicons name="lock-open" size={24} color="#FF9800" />
+                  <Ionicons name="lock-open" size={24} color="#EC3E72" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-base font-bold mb-1">Today</Text>
@@ -58,10 +60,10 @@ export function SubscriptionScreen({
                   </Text>
                 </View>
               </View>
-              <View className="bg-[##FF9800] w-0.5 h-6 ml-4.5 mb-6" />
+              <View className="bg-secondary w-0.5 h-6 ml-4.5 mb-6" />
               <View className="flex-row items-start mb-3">
                 <View className="w-10 h-10 rounded-[20px] justify-center items-center mr-4">
-                  <Ionicons name="notifications" size={24} color="#FF9800" />
+                  <Ionicons name="notifications" size={24} color="#EC3E72" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-base font-bold mb-1">
@@ -72,10 +74,10 @@ export function SubscriptionScreen({
                   </Text>
                 </View>
               </View>
-              <View className="bg-[##FF9800] w-0.5 h-6 ml-4.5 mb-6"/>
+              <View className="bg-secondary w-0.5 h-6 ml-4.5 mb-6"/>
               <View className="flex-row items-start mb-3">
                 <View className="w-10 h-10 rounded-[20px] justify-center items-center mr-4">
-                  <Ionicons name="card" size={24} color="#FF9800" />
+                  <Ionicons name="card" size={24} color="#EC3E72" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-base font-bold mb-1">
@@ -131,7 +133,7 @@ export function SubscriptionScreen({
             <TouchableOpacity
                 className={`flex-1 p-4 rounded-xl border-2 items-center ${
                     subscriptionType === 'monthly'
-                        ? 'border-[#FF9800] bg-orange-50'
+                        ? 'border-secondary/15 bg-orange-50'
                         : 'border-slate-300 bg-white'
                 }`}
                 onPress={() => onSubscriptionSelect('monthly')}
@@ -142,7 +144,7 @@ export function SubscriptionScreen({
                         <TouchableOpacity
                 className={`flex-1 p-4 rounded-xl border-2 items-center ${
                     subscriptionType === 'yearly'
-                        ? 'border-[#FF9800] bg-orange-50'
+                        ? 'border-secondary bg-orange-50'
                         : 'border-slate-300 bg-white'
                 }`}
                 onPress={() => onSubscriptionSelect('yearly')}
@@ -175,6 +177,14 @@ export function SubscriptionScreen({
                 <Text className="text-sm underline text-gray-500">Privacy</Text>
             </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          className="p-3 mt-2 rounded-xl items-center border border-slate-300 bg-primary"
+          onPress={onGoToAuth}
+        >
+          <Text className="text-base font-semibold text-white">
+            Login / Sign Up
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

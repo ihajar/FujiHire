@@ -10,14 +10,15 @@ interface TrialFeaturesProps {
 export function TrialFeatures({ yearlyPrice, yearlyTotal, onStartFreeTrial }: TrialFeaturesProps) {
     return (
         <View className="flex-1 bg-white">
-            <View className="flex-1">
-                <Animated.View entering={FadeIn.duration(600)} className="items-center p-8 pb-0">
+            <View className="flex-1 items-center justify-center">
+                <Animated.View entering={FadeIn.duration(600)} className="items-center">
                     <Text className="text-xl font-bold text-center mb-10 text-black">
-                        We want you to try FujiHire for free.
+                        We want you to try Career++ for free.
                     </Text>
-                    <View className="w-full h-[400px] mb-5">
+                    <View className="w-full h-16 mb-5 justify-center items-center">
                         <Image
-                            source={require('@/assets/images/logo-light.svg')}
+                            source={require('@/assets/images/logo.png')}
+                            style={{ width: 300, height: 80, resizeMode: 'contain' }}
                         />
                     </View>
                 </Animated.View>
@@ -32,7 +33,7 @@ export function TrialFeatures({ yearlyPrice, yearlyTotal, onStartFreeTrial }: Tr
                     </Text>
                 </View>
                 <TouchableOpacity className="p-4 m-2.5 rounded-xl items-center" onPress={onStartFreeTrial}>
-                    <Text className="text-white text-lg font-semibold">
+                    <Text className="text-blackish text-lg font-semibold">
                         Try for $0.00
                     </Text>
                 </TouchableOpacity>

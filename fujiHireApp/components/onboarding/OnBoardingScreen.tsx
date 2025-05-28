@@ -66,17 +66,21 @@ export function OnBoardingScreen() {
       if (packages.annual) {
         const sucess = true;
         if (sucess) {
-          router.replace("/(tabs)");
+          router.replace('/(protected)/(tabs)');
         }
       }
     } else {
       if (packages.monthly) {
         const success = true;
         if (success) {
-          router.replace("/(tabs)");
+          router.replace('/(protected)/(tabs)');
         }
       }
     }
+  };
+
+  const handleGoToAuth = () => {
+    router.replace('/(protected)/login'); // This is where you use the "/auth" link
   };
 
   const renderContent = () => {
@@ -139,6 +143,7 @@ export function OnBoardingScreen() {
           onSubscriptionSelect={handleSubscriptionSelect}
           onPurchasePackage={handlePurchasePackage}
           onRestorePurchases={() => {}}
+          onGoToAuth={handleGoToAuth}
         />
       );
     }
