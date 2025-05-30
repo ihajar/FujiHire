@@ -12,8 +12,8 @@ import { useAuth } from "@/context/AuthContext";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Redirect, useRouter } from "expo-router";
 
-export default function Login() {
-  const router = useRouter();
+export default function Signup() {
+    const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,14 +92,14 @@ export default function Login() {
             onPress={doLogin}
             disabled={isLoading}
           >
-            <Text className="text-white text-lg font-bold">Login</Text>
+            <Text className="text-white text-lg font-bold">Sign Up</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
       <View className="flex-row justify-center mt-4">
-        <Text className="text-base text-gray-700">Don't have an account? </Text>
-        <Pressable onPress={() => router.replace('/signup')}>
-          <Text className="text-base text-primary font-bold underline">Sign Up</Text>
+        <Text className="text-base text-gray-700">Already have an account?</Text>
+        <Pressable onPress={() => router.replace('/login')}>
+          <Text className="text-base text-primary font-bold underline">Login</Text>
         </Pressable>
       </View>
     </Animated.View>

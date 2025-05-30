@@ -19,13 +19,13 @@ export default function ProtectedLayout() {
       router.replace("/login");
     }
   }, [user, loading])
-  // const inAuthGroup
+
   if (user === null || !user?.token) <Redirect href="/login" />
-  if (loading) {
-    return <AuthLoadingScreen />;
-  }
+  // if (loading) {
+  //   return <AuthLoadingScreen />;
+  // }
   return (
-    <Stack>
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );

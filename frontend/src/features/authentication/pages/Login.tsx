@@ -24,13 +24,13 @@ import { FormSuccess } from "../components/form-success";
 
 
 export default function Login() {
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -46,26 +46,6 @@ export default function Login() {
     setSuccess("");
     setIsLoading(true);
 
-    // try {
-    //   startTransition(async() => {
-    //     await login(values.email, values.password);
-    //     setSuccess("Login successful!");
-
-    //     setTimeout(() => {
-    //       navigate(location.state?.from || "/", {
-    //         replace: true,
-    //         state: { from: location.pathname }
-    //       });
-    //     }, 1000);
-    //   });
-    // } catch (error) {
-    //   setIsLoading(false);
-    //   if (error instanceof Error) {
-    //     setError(error.message || "Invalid email or password");
-    //   } else {
-    //     setError("An unknown error occured.");
-    //   }
-    // }
     try {
       await login(values.email, values.password);
       const destination = location.state?.from || "/";

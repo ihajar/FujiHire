@@ -4,6 +4,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useState } fro
 import { apiRequest, loginUser, signupUser } from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
 import { UserRole } from '@/types/user';
+import AuthLoadingScreen from '@/components/AuthLoadingScreen';
 
 // Define types for login payload and response
 interface AuthPayload {
@@ -118,7 +119,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             isLoggedIn,
             loading 
         }}>
-        {children}
+        {loading ? <AuthLoadingScreen /> : children}
       </AuthContext.Provider>
     );
 };
