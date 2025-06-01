@@ -10,16 +10,23 @@ import {
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { Redirect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { UserRole } from "@/types/user";
 
 export default function Signup() {
-    const router = useRouter();
-  const { login } = useAuth();
+  const router = useRouter();
+  const { signup } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole>(UserRole.JOB_SEEKER);
   const [isLoading, setIsLoading] = useState(false);
 
-  const doLogin = async () => {
+  const validateEmail = (email: string) => {
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const doSignup = async () => {
     if (!email || !password) {
       Toast.show({
         type: "error",
@@ -28,18 +35,27 @@ export default function Signup() {
       });
       return;
     }
-    setIsLoading(true);
-    try {
-      await login(email, password);
-      Toast.show({
-        type: "success",
-        text1: "Login Successful",
-      });
-    } catch (error) {
-      // console.error("Login failed:", error);
+    if (!validateEmail(email)) {
       Toast.show({
         type: "error",
-        text1: "Login Failed",
+        text1: "Invalid Email",
+        text2: "Please enter a valid email address.",
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await signup(email, password, role);
+      Toast.show({
+        type: "success",
+        text1: "Signup Successful",
+      });
+      // Optionally redirect to login or home
+      // router.replace('/login');
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Signup Failed",
         text2:
           error instanceof Error
             ? error.message
@@ -53,26 +69,59 @@ export default function Signup() {
   return (
     <Animated.View
       entering={FadeIn.duration(600)}
-      className="flex-1 justify-center items-center w-full h-full"
-      style={{  justifyContent: 'flex-start' }} // Tailwind's bg-pink-400
+      className="flex-1 w-full h-full bg-primary"
+      style={{ justifyContent: 'center' }} // Tailwind's bg-pink-400
     >
       <Animated.Image
         entering={FadeIn.duration(600)}
-        source={require("@/assets/images/logo.png")}
-        className="self-center w-2/3 h-[150px] mt-10"
+        source={require("@/assets/images/Logo-white.png")}
+        className="self-center w-4/5 h-[230px] mt-10 absolute top-0"
         resizeMode="contain"
       />
-      <Text className="text-2xl font-bold text-center mb-5">
-        Welcome Back!
-        {"\n"}
-        Please login to continue.
+      <Text className="text-3xl font-bold text-center mb-5 text-accent font-rametto">
+        Create account
       </Text>
-      <KeyboardAvoidingView behavior="padding" className="w-full px-4">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="w-full px-4"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
         <View className="items-center w-full">
+          {/* Role selection */}
+          <View className="flex-row mb-4 w-full justify-center">
+            <Pressable
+              className={`px-4 py-2 rounded-lg mr-2 ${
+                role === UserRole.JOB_SEEKER ? "bg-accent" : "transparent"
+              }`}
+              onPress={() => setRole(UserRole.JOB_SEEKER)}
+            >
+              <Text
+                className={
+                  role === UserRole.JOB_SEEKER ? "text-blackish" : "text-white"
+                }
+              >
+                Job Seeker
+              </Text>
+            </Pressable>
+            <Pressable
+              className={`px-4 py-2 rounded-lg ${
+                role === UserRole.EMPLOYER ? "bg-accent" : "bg-transparent"
+              }`}
+              onPress={() => setRole(UserRole.EMPLOYER)}
+            >
+              <Text
+                className={
+                  role === UserRole.EMPLOYER ? "text-blackish" : "text-white"
+                }
+              >
+                Employer
+              </Text>
+            </Pressable>
+          </View>
           <TextInput
-            className="my-2 h-[50px] border border-blackish/60 rounded-full p-2.5 w-full"
+            className="my-2 h-[50px] border border-white rounded-lg p-2.5 w-full text-white"
             placeholder="Email address"
-            placeholderTextColor="gray"
+            placeholderTextColor="#fff"
             value={email}
             onChangeText={(text) => setEmail(text)}
             autoCapitalize="none"
@@ -80,16 +129,17 @@ export default function Signup() {
           />
           <TextInput
             secureTextEntry={true}
-            className="my-2 h-[50px] border border-blackish/60 rounded-full p-2.5 w-full"
+            className="my-2 h-[50px] border border-white rounded-lg p-2.5 w-full text-white"
             placeholder="Password"
+            placeholderTextColor="#fff"
             value={password}
             autoCapitalize="none"
             keyboardType="default"
             onChangeText={setPassword}
           />
           <Pressable
-            className="bg-primary rounded-full p-3 items-center justify-center my-2 w-full"
-            onPress={doLogin}
+            className="bg-secondary rounded-lg p-3 items-center justify-center my-2 w-full"
+            onPress={doSignup}
             disabled={isLoading}
           >
             <Text className="text-white text-lg font-bold">Sign Up</Text>
@@ -97,9 +147,13 @@ export default function Signup() {
         </View>
       </KeyboardAvoidingView>
       <View className="flex-row justify-center mt-4">
-        <Text className="text-base text-gray-700">Already have an account?</Text>
-        <Pressable onPress={() => router.replace('/login')}>
-          <Text className="text-base text-primary font-bold underline">Login</Text>
+        <Text className="text-base text-white">
+          Already have an account?
+        </Text>
+        <Pressable onPress={() => router.replace("/login")}>
+          <Text className="text-base text-accent font-bold underline">
+            Login
+          </Text>
         </Pressable>
       </View>
     </Animated.View>

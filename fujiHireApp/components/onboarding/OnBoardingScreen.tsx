@@ -161,16 +161,10 @@ export function OnBoardingScreen() {
           >
             <TouchableOpacity
               onPress={() => handleOptionSelect(option.id)}
-              className={`p-4 rounded-xl mt-3 border-2 border-transparent
-                                ${answers[currentStep] === option.id} 
-                                bg-primary/10 border-primary/5
-                            `}
+              className={`p-4 rounded-xl mt-3 border-2 ${answers[currentStep] === option.id ? 'bg-primary/10 border-primary' : 'bg-white border-slate-200'}`}
             >
               <Text
-                className={`text-base text-center font-medium 
-                                    ${answers[currentStep] === option.id} 
-                                    text-primary font-semibold
-                                `}
+                className={`text-base text-center font-medium ${answers[currentStep] === option.id ? 'text-primary font-semibold' : 'text-black'}`}
               >
                 {option.label}
               </Text>

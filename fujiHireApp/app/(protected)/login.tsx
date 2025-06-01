@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { Redirect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 export default function Login() {
   const router = useRouter();
@@ -19,12 +19,26 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const validateEmail = (email: string) => {
+    // Simple email regex for validation
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
+    return re.test(String(email).toLowerCase());
+  };
+
   const doLogin = async () => {
     if (!email || !password) {
       Toast.show({
         type: "error",
         text1: "Missing Fields",
         text2: "Please fill in both email and password.",
+      });
+      return;
+    }
+    if (!validateEmail(email)) {
+      Toast.show({
+        type: "error",
+        text1: "Invalid Email",
+        text2: "Please enter a valid email address.",
       });
       return;
     }
@@ -53,26 +67,28 @@ export default function Login() {
   return (
     <Animated.View
       entering={FadeIn.duration(600)}
-      className="flex-1 justify-center items-center w-full h-full"
-      style={{  justifyContent: 'flex-start' }} // Tailwind's bg-pink-400
+      className="flex-1 w-full h-full bg-primary"
+      style={{ justifyContent: 'center' }} // Tailwind's bg-pink-400
     >
       <Animated.Image
-        entering={FadeIn.duration(600)}
-        source={require("@/assets/images/logo.png")}
-        className="self-center w-2/3 h-[150px] mt-10"
-        resizeMode="contain"
+      entering={FadeIn.duration(600)}
+      source={require("@/assets/images/Logo-white.png")}
+      className="self-center w-4/5 h-[230px] mt-10 absolute top-0"
+      resizeMode="contain"
       />
-      <Text className="text-2xl font-bold text-center mb-5">
-        Welcome Back!
-        {"\n"}
-        Please login to continue.
+      <Text className="text-3xl font-bold text-center mb-5 text-accent font-rametto">
+        Welcome Back
       </Text>
-      <KeyboardAvoidingView behavior="padding" className="w-full px-4">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="w-full px-4"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
         <View className="items-center w-full">
           <TextInput
-            className="my-2 h-[50px] border border-blackish/60 rounded-full p-2.5 w-full"
+            className="my-2 h-[50px] border border-white rounded-lg p-2.5 w-full text-white"
             placeholder="Email address"
-            placeholderTextColor="gray"
+            placeholderTextColor="#fff"
             value={email}
             onChangeText={(text) => setEmail(text)}
             autoCapitalize="none"
@@ -80,15 +96,19 @@ export default function Login() {
           />
           <TextInput
             secureTextEntry={true}
-            className="my-2 h-[50px] border border-blackish/60 rounded-full p-2.5 w-full"
+            className="my-2 h-[50px] border border-white rounded-lg p-2.5 w-full text-white"
             placeholder="Password"
+            placeholderTextColor="#fff"
             value={password}
             autoCapitalize="none"
             keyboardType="default"
             onChangeText={setPassword}
           />
+          <Pressable onPress={() => router.replace('/signup')} className="my-2 items-end w-full">
+            <Text className=" text-lg font-semibold text-white">Forgot Password?</Text>
+          </Pressable>
           <Pressable
-            className="bg-primary rounded-full p-3 items-center justify-center my-2 w-full"
+            className="bg-secondary rounded-lg p-3 items-center justify-center my-2 w-full"
             onPress={doLogin}
             disabled={isLoading}
           >
@@ -97,9 +117,9 @@ export default function Login() {
         </View>
       </KeyboardAvoidingView>
       <View className="flex-row justify-center mt-4">
-        <Text className="text-base text-gray-700">Don't have an account? </Text>
+        <Text className="text-base text-white">Don't have an account? </Text>
         <Pressable onPress={() => router.replace('/signup')}>
-          <Text className="text-base text-primary font-bold underline">Sign Up</Text>
+          <Text className="text-base text-accent font-bold underline">Sign Up</Text>
         </Pressable>
       </View>
     </Animated.View>
