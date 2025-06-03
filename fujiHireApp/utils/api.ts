@@ -1,45 +1,56 @@
-import { UserRole } from "@/types/user";
+
+import * as SecureStore from 'expo-secure-store'
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export async function apiRequest<T>(
-    endpoint: string,
-    options?: RequestInit
-): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, options);
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.message || 'An error occured');
+interface IRequestParams<T> {
+    endpoint: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    contentType?: 'application/json' | 'multipart/form-data';
+    body?: BodyInit | FormData;
+    headers?: Record<string, string>;
+}
+
+export const request = async<T>({
+    endpoint,
+    method = 'GET',
+    body,
+    contentType = 'application/json',
+    headers = {},
+}: IRequestParams<T>): Promise<T> => {
+    const token = await SecureStore.getItemAsync('token');
+    const defaultHeaders: Record<string, string> = {};
+
+    if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
-    return response.json();
-}
+    if (contentType === 'application/json') {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
-interface AuthPayload {
-    email: string;
-    password: string;
-    role: UserRole;
-}
-
-interface AuthResponse {
-    token: string;
-    user: {
-        id: string;
-        email: string;
+    const finalHeaders = {
+        ...defaultHeaders,
+        ...headers,
     };
-}
 
-export const loginUser = (data: AuthPayload) : Promise<AuthResponse> => {
-    return apiRequest(`/api/v1/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-    });
-}
+    try {
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
+            method,
+            headers: finalHeaders,
+            body: contentType === 'application/json' && body ? JSON.stringify(body) : body as FormData,
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.message || 'An error occurred';
+            throw new Error(errorMessage);
+        }
 
-export const signupUser = (data: AuthPayload): Promise<AuthResponse> => {
-    return apiRequest('/api/v1/register', {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-    })
-}
+        const emptyRes = await response.text();
+        return emptyRes ? JSON.parse(emptyRes) : ({} as T);
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        }
+        throw new Error('Something went wrong. Please try again later!');
+    }
+};

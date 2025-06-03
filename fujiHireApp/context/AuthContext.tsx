@@ -1,133 +1,166 @@
-import * as SecureStore  from 'expo-secure-store';
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as SecureStore from 'expo-secure-store';
+import { usePathname, useRouter } from "expo-router";
+import { UserRole } from "@/types/user";
+import { request } from "@/utils/api";
+import { AppRoutes } from '@/types/routes';
+import AuthLoadingScreen from "@/components/AuthLoadingScreen";
 
-import { apiRequest, loginUser, signupUser } from "@/utils/api";
-import { useMutation } from "@tanstack/react-query";
-import { UserRole } from '@/types/user';
-import AuthLoadingScreen from '@/components/AuthLoadingScreen';
 
-// Define types for login payload and response
-interface AuthPayload {
-  email: string;
-  password: string;
-  role: UserRole;
-}
-interface AuthResponse {
-  token: string;
-  user: any;
+interface IAuthResponse {
+    token: string;
+    user: User;
 }
 
-export type User = {
+export interface User {
     id: string;
     email: string;
     role: UserRole;
     emailVerified: boolean;
 }
 
-type AuthContextType = {
-    user: any;
-    setUser: (user: any) => void;
+interface IAuthContextType {
+    user: User | null;
+    setUser: (user: User | null) => void;
     login: (email: string, password: string) => Promise<void>;
     signup: (email: string, password: string, role: UserRole) => Promise<void>;
     logout: () => Promise<void>;
-    isLoggedIn: boolean;
-    loading: boolean;
+    isAuthenticated: boolean;
+    isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<IAuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: PropsWithChildren) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [loading, setLoading] = useState(true);
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider.');
+    }
+    return context;
+}
 
-    // Use object syntax for useMutation (React Query v5+)
-    const loginMutation = useMutation({
-        mutationFn: (data: AuthPayload) => loginUser(data),
-        onSuccess: async (data: AuthResponse) => {
-            await SecureStore.setItemAsync('token', data.token);
-            setUser(data.user);
-            setIsLoggedIn(true);
-        },
-        onError: (error: any) => {
-            console.error("Login error:", error);
-            throw error; // Re-throw to handle in the component
+export function AuthProvider({ children } : PropsWithChildren) {
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const pathname = usePathname();
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [initialCheckDone, setInitialCheckDone] = useState(false);
+
+    // query to fetch current user
+    const { data: user, isPending } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: async() => {
+            try {
+                const token = await SecureStore.getItemAsync('token');
+                if (!token) return null;
+                return await request<User>({
+                    endpoint: '/api/v1/auth/users/me',
+                    method: 'GET',
+                });
+            } catch (error) {
+                await SecureStore.deleteItemAsync('token');
+                return null;
+            }
         },
     });
 
-    // Login function
-    const login = async (email: string, password: string) => {
-        await loginMutation.mutateAsync({ email, password, role: user?.role || UserRole.JOB_SEEKER });
-    };
+    // Handle initial route check
+    useEffect(() => {
+        if (isPending || initialCheckDone) return;
+
+        const isOnAuthPage = [
+            '/(protected)/login',
+            '/(protected)/signup',
+            '/(protected)/request-password-reset'
+        ].includes(pathname);
+
+        if (!user && !isOnAuthPage) {
+            router.replace('/');
+        } else if (user && !user.emailVerified && pathname !== '/(protected)/verify-email') {
+            router.replace('/(protected)/verify-email');
+        } else if (user && user.emailVerified && pathname === '/(protected)/verify-email') {
+            router.replace('/(protected)/(tabs)');
+        } else if (user && isOnAuthPage) {
+            router.replace('/(protected)/(tabs)');
+        }
+
+        setInitialCheckDone(true);
+    }, [user, isPending, pathname, initialCheckDone]);
+
+    const loginMutation = useMutation({
+        mutationFn: async({ email, password }: { email: string, password: string }) => {
+            setIsLoading(true);
+            return await request<IAuthResponse>({
+                endpoint: '/api/v1/auth/login',
+                method: 'POST',
+                body: JSON.stringify({
+                    email,
+                    password,
+                    role: user?.role || UserRole.JOB_SEEKER
+                }),
+            });
+        },
+        onSuccess: async(data) => {
+            await SecureStore.setItemAsync('token', data.token);
+            queryClient.setQueryData(['currentUser'], data.user);
+        },
+        onError: (error) => {
+            console.error('Login failed: ', error);
+        },
+        onSettled: () => {
+            setIsLoading(false);
+        },
+    });
 
     const signupMutation = useMutation({
-        mutationFn: (data: AuthPayload) => signupUser(data),
-        onSuccess: async(data: AuthResponse) => {
-            await SecureStore.setItemAsync('token', data.token);
-            setUser(data.user);
-            setIsLoggedIn(true);
+        mutationFn: async({ email, password, role }: { email: string, password: string, role: UserRole }) => {
+            return await request<IAuthResponse>({
+                endpoint: '/api/v1/auth/register',
+                method: 'POST',
+                body: JSON.stringify({ email, password, role }),
+            });
         },
-        onError: (error: any) => {
-            console.error("Signup error:", error);
-            throw error; // Re-throw to handle in the component
-        }
-    })
+        onSuccess: async(data) => {
+            await SecureStore.setItemAsync('token', data.token);
+            queryClient.setQueryData(['currentUser'], data.user);
+        },
+        onError: (error) => {
+            console.error('Sign up failed: ', error);
+        },
+    });
 
-    // Signup function
-    const signup = async (email: string, password: string, role: UserRole) => {
+    const login = async( email: string, password: string ) => {
+        await loginMutation.mutateAsync({ email, password });
+    };
+
+    const signup = async( email: string, password: string, role: UserRole ) => {
         await signupMutation.mutateAsync({ email, password, role });
     };
-    // Logout function
-    const logout = async () => {
+
+    const logout = async() => {
+        setInitialCheckDone(false);
         await SecureStore.deleteItemAsync('token');
-        setUser(null);
+        queryClient.removeQueries({ queryKey: ['currentUser'] });
+        queryClient.clear();
+        router.replace('/(protected)/login');
     };
 
-    useEffect(() => {
-        const checkAuthStatus = async() => {
-            const token = await SecureStore.getItemAsync("token");
-            if (token) {
-                try {
-                    const authUser = await apiRequest<User>('/api/v1/auth/users/me', {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setUser(authUser);
-                    setIsLoggedIn(true);
-                } catch (error) {
-                    console.error("Error checking auth status:", error);
-                    setUser(null);
-                    setIsLoggedIn(false);
-                    setLoading(false);
-                }
-            } else {
-                setUser(null);
-                setIsLoggedIn(false);
-            }
-            setLoading(false);
-        }
-        checkAuthStatus();
-    }, [])
-
     return (
-      <AuthContext.Provider 
-        value={{ 
-            user, 
-            setUser,
-            login,
-            signup,
-            logout, 
-            isLoggedIn,
-            loading 
-        }}>
-        {loading ? <AuthLoadingScreen /> : children}
-      </AuthContext.Provider>
-    );
-};
+        <AuthContext.Provider
+            value={{
+                user: user || null,
+                setUser: (user) => queryClient.setQueryData(['currentUser'], user),
+                login,
+                signup,
+                logout,
+                isAuthenticated: !!user,
+                isLoading
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    )
 
-export const useAuth = () => {
-    const ctxt = useContext(AuthContext);
-    if (!ctxt) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return ctxt;
 }
